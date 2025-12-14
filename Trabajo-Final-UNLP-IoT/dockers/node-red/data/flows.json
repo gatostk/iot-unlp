@@ -1,0 +1,175 @@
+[
+    {
+        "id": "ae9ef320418e32b0",
+        "type": "tab",
+        "label": "DETECCIÓN PERSONA (FINAL2)",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "mqtt_broker",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "node-red-detector",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "a3f14f873e869a32",
+        "type": "telegram bot",
+        "botname": "AlertaCamaraIPbot",
+        "usernames": "ingresar",
+        "chatids": "ingresar",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": 300,
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": 6667,
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "0.0.0.0",
+        "localbotport": 8443,
+        "publicbotport": 8443,
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "2d788abb33b3f85c",
+        "type": "mqtt in",
+        "z": "ae9ef320418e32b0",
+        "name": "MQTT Imagen Base64",
+        "topic": "unlp/iot/person_detection",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 160,
+        "wires": [
+            [
+                "cfe2064f38a673cf"
+            ]
+        ]
+    },
+    {
+        "id": "cfe2064f38a673cf",
+        "type": "function",
+        "z": "ae9ef320418e32b0",
+        "name": "Base64 → Buffer + adjuntar meta",
+        "func": "const imgBuffer = Buffer.from(msg.payload, \"base64\");\n\n// Recuperar metadata guardada en contexto\nconst meta = flow.get(\"last_meta\") || { confidence: null, hora: null };\n\nmsg.payload = {\n    image: imgBuffer,\n    meta: meta\n};\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 160,
+        "wires": [
+            [
+                "b89049e5877727d7"
+            ]
+        ]
+    },
+    {
+        "id": "3422030a3dea2cae",
+        "type": "mqtt in",
+        "z": "ae9ef320418e32b0",
+        "name": "MQTT Metadata",
+        "topic": "unlp/iot/person_detection/meta",
+        "qos": "1",
+        "datatype": "auto",
+        "broker": "mqtt_broker",
+        "nl": false,
+        "rap": false,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 240,
+        "wires": [
+            [
+                "5c7af8d0234ad8a5"
+            ]
+        ]
+    },
+    {
+        "id": "5c7af8d0234ad8a5",
+        "type": "function",
+        "z": "ae9ef320418e32b0",
+        "name": "Guardar meta en flow",
+        "func": "let meta = {};\ntry {\n    meta = JSON.parse(msg.payload);\n} catch (e) {\n    node.warn(\"No se pudo parsear metadata: \" + e.message);\n    return null;\n}\n\nflow.set(\"last_meta\", meta);\nreturn null; // no sigue el flujo",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b89049e5877727d7",
+        "type": "function",
+        "z": "ae9ef320418e32b0",
+        "name": "Armar mensaje Telegram",
+        "func": "const data = msg.payload;\nconst meta = data.meta || {};\n\nconst hora = meta.hora || new Date().toLocaleString(\"es-AR\");\nconst conf = (typeof meta.confidence === \"number\") ? meta.confidence.toFixed(2) : \"N/A\";\n\nmsg.payload = {\n    chatId: 7445265091,\n    type: \"photo\",\n    content: data.image,\n    caption: `Persona detectada\\nHora: ${hora}\\n`\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 160,
+        "wires": [
+            [
+                "d2656793fa350521"
+            ]
+        ]
+    },
+    {
+        "id": "d2656793fa350521",
+        "type": "telegram sender",
+        "z": "ae9ef320418e32b0",
+        "name": "Enviar a Telegram",
+        "bot": "a3f14f873e869a32",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1050,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    }
+]

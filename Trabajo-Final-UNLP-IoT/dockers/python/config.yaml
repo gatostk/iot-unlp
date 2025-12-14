@@ -1,0 +1,13 @@
+# Configuración de la cámara RTSP
+rtsp_url: "ENV"   # Se arma dinámicamente desde .env
+
+# Configuración MQTT
+mqtt:
+  host: "mosquitto"
+  port: 1883
+  topic: unlp/iot/person_detection
+  cooldown: 5
+
+# Parámetros de detección
+detection:
+  min_movement: 5000
