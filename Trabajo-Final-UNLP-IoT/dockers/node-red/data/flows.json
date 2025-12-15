@@ -84,7 +84,7 @@
         "type": "function",
         "z": "fa96a7e8468db1d9",
         "name": "Base64 → Buffer + Caption",
-        "func": "let img = msg.payload.image;\nlet conf = msg.payload.confidence;\nlet hora = msg.payload.hora;\n\nmsg.payload = {\n    chatId: 7445265091,\n    type: \"photo\",\n    content: Buffer.from(img, \"base64\"),\n    caption: `Persona detectada\\nConfianza: ${conf}\\nHora: ${hora}`\n};\n\nreturn msg;",
+        "func": "let img = msg.payload.image;\nlet conf = msg.payload.confidence;\nlet hora = msg.payload.hora;\n\nmsg.payload = {\n    chatId: COMPLETAR,\n    type: \"photo\",\n    content: Buffer.from(img, \"base64\"),\n    caption: `Persona detectada\\nConfianza: ${conf}\\nHora: ${hora}`\n};\n\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
