@@ -3,7 +3,7 @@ import time
 import logging
 import yaml
 import os
-from detector import Detector
+from yolo_detector import YOLODetector
 from rtsp_reader import RTSPReader
 from publisher import Publisher
 
@@ -39,25 +39,25 @@ def main():
     mqtt_topic = config["mqtt"]["topic"]
     cooldown = config["mqtt"]["cooldown"]
 
-    min_movement = config["detection"]["min_movement"]
+    min_conf = config["detection"]["min_confidence"]
 
     reader = RTSPReader(rtsp_url)
-    detector = Detector(min_movement=min_movement)
+    detector = YOLODetector(min_conf=min_conf)
     publisher = Publisher(mqtt_host, mqtt_port, cooldown)
 
-    logger.info("Starting detection loop...")
+    logger.info("Starting YOLO detection loop...")
 
     while True:
         frame = reader.get_frame()
         if frame is None:
             continue
 
-        detected = detector.detect(frame)
+        detected, bbox, conf = detector.detect(frame)
 
         if detected:
-            published = publisher.publish_image(mqtt_topic, frame)
+            published = publisher.publish_image(mqtt_topic, frame, bbox=bbox, confidence=conf)
             if published:
-                logger.info("Movement detected! Publishing image...")
+                logger.info(f"Person detected! Conf={conf:.2f}")
 
         time.sleep(0.01)
 

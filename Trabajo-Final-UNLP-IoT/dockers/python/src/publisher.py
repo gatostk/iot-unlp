@@ -19,6 +19,7 @@ class Publisher:
         self.cooldown = cooldown
         self.last_publish = 0
 
+        logger.info(f"[MQTT] Connecting to {host}:{port}")
         self.client.connect(host, port, 60)
         self.client.loop_start()
 
@@ -53,10 +54,8 @@ class Publisher:
     def draw_detection(self, frame, bbox, confidence):
         x1, y1, x2, y2 = bbox
 
-        # Dibujar rectángulo
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-        # Texto
         hora = datetime.now().strftime("%H:%M:%S")
         label = f"Conf: {confidence:.2f} - {hora}"
 
@@ -77,7 +76,6 @@ class Publisher:
             logger.warning("[MQTT] Not connected, skipping publish")
             return False
 
-        # Dibujar detección si corresponde
         if bbox is not None and confidence is not None:
             frame = self.draw_detection(frame, bbox, confidence)
 
@@ -90,16 +88,13 @@ class Publisher:
 
         encoded = base64.b64encode(buffer).decode("utf-8")
 
-        # Publicar imagen
-        self.client.publish(topic, encoded, qos=1)
+        payload = {
+            "image": encoded,
+            "confidence": float(confidence) if confidence is not None else None,
+            "hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
 
-        # Publicar metadata solo si hay confidence
-        if confidence is not None:
-            metadata = {
-                "confidence": float(confidence),
-                "hora": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-            self.client.publish(topic + "/meta", json.dumps(metadata), qos=1)
+        self.client.publish(topic, json.dumps(payload), qos=1)
 
         logger.info("[MQTT] Image + metadata published successfully")
         return True
