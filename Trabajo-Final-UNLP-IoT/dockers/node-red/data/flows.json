@@ -37,9 +37,9 @@
     {
         "id": "ee77f7f85a16a732",
         "type": "telegram bot",
-        "botname": "AlertaCamaraIPbot",
-        "usernames": "Gatostk",
-        "chatids": "7445265091",
+        "botname": "completar bot",
+        "usernames": "completar nombre",
+        "chatids": "completar chat id",
         "baseapiurl": "",
         "testenvironment": false,
         "updatemode": "polling",
